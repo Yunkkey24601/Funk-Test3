@@ -1,0 +1,8 @@
+{
+  "name": "funk-test3",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "sh recon.sh || true",
+    "start": "node server.js"
+  }
+}
